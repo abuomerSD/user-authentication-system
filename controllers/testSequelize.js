@@ -1,5 +1,4 @@
 const { Sequelize, Model, DataTypes } = require('sequelize');
-const { Json } = require('sequelize/types/utils');
 
 const dbURI = "postgres://asdf:''@localhost:5432/auth";
 const sequelize = new Sequelize(dbURI);
@@ -8,10 +7,11 @@ async function testDbConnection()
 {
         await sequelize.authenticate();
         console.log('connected Successfully');  
-        checkUserModel();
+        // checkUserModel();
         // createUserTable();
         // saveFirstUser();
         // saveSecondUser();
+        // addThirdUser();
         getAllUsers();
 }
 
@@ -35,7 +35,8 @@ User.init({
     }
 }, {
     sequelize,
-    modelName: 'User'
+    modelName: 'User',
+    timestamps: false,
 })
 
 // the second method to create a model in sequelize is to use the define function
@@ -96,7 +97,23 @@ async function getAllUsers(){
     // console.log(users.User);
     // users = null;
     const users = await User.findAll();
-    console.log('users: ',users)
-    console.log(users.every(user => console.log(user.firstName)));
+    // console.log('users: ',users)
+    // console.log(users.every(user => console.log(user.firstName)));
     // console.log('all users: ', JSON.stringify(users));
+    // console.dir('all users: ', JSON.stringify(users));
+    console.log('all users: ', JSON.stringify(users, null, 3));
+    const usersJson = JSON.stringify(users).split(',');
+    // console.log(usersJson) 
+    users.forEach(user => {
+        console.log(user.dataValues.firstName);
+    });
+
+}
+
+async function addThirdUser(){
+    await User.create({
+        firstName: 'Omer',
+        lastName: 'Mohammed'
+    });
+    console.log('third user saved');
 }
