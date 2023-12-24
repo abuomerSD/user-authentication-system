@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
+const jwtSecret = process.env.JWT_SECRET ;
+
 const dbURI = "postgres://asdf:''@localhost:5432/auth";
 const sequelize = new Sequelize(dbURI);
 
@@ -19,7 +21,11 @@ User.init({
     password: {
         type: DataTypes.STRING,
         allowNull: false,
-    }
+    },
+    // role: {
+    //     type: DataTypes.STRING,
+    //     allowNull: false,
+    // }
 },{
     sequelize,
     modelName: 'User',
@@ -153,8 +159,25 @@ const login = async (req, res) => {
         bcrypt.compare(password, user.password)
             .then( (result) => {
                 if(result){
+                    // res.json({
+                    //     message: 'login successfully',
+                    // })
+                    const maxAge = 3 * 60 * 60;
+                    const token = jwt.sign(
+                        {id: user.id, username, role: user.role},
+                        jwtSecret,
+                        {
+                        expiresIn: maxAge,
+                        }
+                    );
+
+                    res.cookie('jwt', token, {
+                        httpOnly: true,
+                        maxAge: maxAge * 1000,
+                    });
+
                     res.json({
-                        message: 'login successfully',
+                        message: 'user logged in successfully',
                     })
                 }
                 else {
@@ -172,7 +195,7 @@ const login = async (req, res) => {
 }
 
 const register = async (req, res) => {
-    const jwtSecret = process.env.JWT_SECRET ;
+    
     const {username, password} = req.body;
 
     if(!username || !password) {
@@ -207,8 +230,16 @@ const register = async (req, res) => {
         res.status(400).json({
           message: "User not successful created",
           error: error.message,
-        })
+        }))
 
+}
+
+const getAdmin = (req, res) => {
+    console.log('admin');
+}
+
+const getBasicUser = (req, res) => {
+    console.log('basic user');
 }
 
 module.exports = {
@@ -218,4 +249,6 @@ module.exports = {
     deleteUser,
     login,
     register,
+    getAdmin,
+    getBasicUser,
 }
